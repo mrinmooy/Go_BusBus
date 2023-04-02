@@ -6,4 +6,4 @@
  validation while keeping record of booked seats, available seats, buses, passenger information etc in the database
 
  ● Added Admin page that allows admins to add, update, delete or view data in the database like bus routes, bus
- running time, bus availability, available seats etc
+ running time, bus availability, available seats, fare etc
