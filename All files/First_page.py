@@ -26,3 +26,5 @@ def nex(e=0):
     root.destroy()
     import Main_Menu
 root.bind("<KeyPress>",nex)
+
+root.mainloop()
