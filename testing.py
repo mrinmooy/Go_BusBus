@@ -164,6 +164,7 @@ def viewTable(table):
     rows = c.fetchall()
     for row  in rows:
         print(row)
+    print()
     conn.commit()
     conn.close()
 
@@ -204,8 +205,50 @@ def insertVal(table,data):
     conn.close()
 
 
+def rando():
+    conn = sqlite3.connect('GoBusBus.db')
+    c = conn.cursor()
+    query = """
+    SELECT SUM(":X:") from 'RouteDetails';
+    """
+    c.execute(query)
+    res = c.fetchone()[0]
+    print(f"heres the sum, {res}")
+    conn.commit()
+    conn.close()
 
+from datetime import datetime
 
+def weekday(date):
+    date_format = "%d-%m-%Y"
+    date_obj = datetime.strptime(date, date_format)
+    day_name = date_obj.strftime('%A')
+    return day_name
+
+def getCityID(name):
+    conn = sqlite3.connect('GoBusBus.db')
+    c = conn.cursor()
+    query = f"""
+    SELECT ID from City WHERE Name = '{name}';
+    """
+    c.execute(query)
+    id = c.fetchone()[0]
+    conn.commit()
+    conn.close()
+    return id
+
+def getOperator(busID):
+    conn = sqlite3.connect('GoBusBus.db')
+    c = conn.cursor()
+    opID = busID[0]
+    query = f"""
+    SELECT Name, PhoneNumber from Operator WHERE ID = '{opID}';
+    """
+    c.execute(query)
+    operator = c.fetchone()
+    conn.commit()
+    conn.close()
+    return operator
 
 # drop('newTable')
 #viewTables()
@@ -218,4 +261,27 @@ def insertVal(table,data):
 #viewTables()
 #display('newTable')
 # insert('newTable',("'mrinmoy'",))
+
+# viewDB()
+# table = 'RouteDetails'
+# columns  = ("'RouteID TEXT', 'RouteString TEXT', '\A\ INTEGER', '\B\ INTEGER', '\C\ INTEGER', '\D\ INTEGER', '\E\ INTEGER', '\F\ INTEGER', '\G\ INTEGER', '\H\ INTEGER', '\I\ INTEGER', '\J\ INTEGER',")
+# createTable(table,columns)
+# viewDB()
+
+# viewDB()
+# table = 'RouteDetails'
+# columns  = ('":X:" INTEGER',)
+# createTable(table,columns)
+
+# viewDB()
+# viewTable('City')
+# viewTable('RouteDetails')
+# viewTable('Operator')
+# viewTable('BusDetails')
+
+print(weekday('29-03-2024'))
+
+print(getCityID("Jabalpur"))
+print(getOperator('ax02x084x1'))
+
 
