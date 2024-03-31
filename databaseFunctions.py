@@ -97,10 +97,31 @@ def getOperator(busID):
     operator = c.fetchone()
     conn.commit()
     conn.close()
-    return operator
+    return operator[0]
 
+def whichCity(cityID):
+    conn = sqlite3.connect('GoBusBus.db')
+    c = conn.cursor()
+    query = f"""
+    SELECT Name 
+    FROM City  
+    WHERE ID = '{cityID}';
+    """
+    c.execute(query)
+    cityName = c.fetchone()[0]
+    conn.commit()
+    conn.close()
+    return cityName
 
-def checkSeatAvailability(date, busID, srcID, destID):
+def ticketMaker(busID, date, From, To, seats):
+    seats = str(seats)
+    FromID = getCityID(From)
+    ToID = getCityID(To)
+    ticket = (busID,date,FromID,ToID,seats)
+    ticket = ':'.join(ticket)
+    return ticket
+
+def SeatsAvailable(date, busID, srcID, destID):
     conn = sqlite3.connect('GoBusBus.db')
     c = conn.cursor()
     query = f"""
@@ -110,7 +131,7 @@ def checkSeatAvailability(date, busID, srcID, destID):
     """
     c.execute(query)
     bookings = c.fetchall()
-    print(bookings)
+    # print(bookings)
     query = f"""
     SELECT RouteID 
     FROM BusDetails
@@ -118,9 +139,11 @@ def checkSeatAvailability(date, busID, srcID, destID):
     """
     c.execute(query)
     routeID = c.fetchone()[0]
-    print(routeID)
+    # print(routeID)
     
     n = len(routeID)
+    startPoint = whichCity(routeID[0])
+    endPoint = whichCity(routeID[n-1])
     arr = [0]*(n+1)
     ind = {}
     for i in range(n):
@@ -133,10 +156,7 @@ def checkSeatAvailability(date, busID, srcID, destID):
     mx = 0
     for i in range(ind[srcID], ind[destID]+1):
         mx = max(mx,arr[i])
-    if(mx==42):
-        return 0
-    else:
-        return 1
+    return (busID,getOperator(busID),startPoint,endPoint,42-mx)
 
 def fillBookingLog(date, busID, boardPoint, dropPoint ):
     insertVal('BookingLog', (date, busID, boardPoint, dropPoint))
@@ -163,8 +183,8 @@ def findBusDetails(date, src, dest):
     busList = c.fetchall()
     busDetails = []
     for bus in busList:
-        flag = checkSeatAvailability(date, bus[0], srcID, destID)
-        busDetails.append((bus[0], getOperator(bus[0]), flag))
+        ax1 = SeatsAvailable(date, bus[0], srcID, destID)
+        busDetails.append(ax1)
     return busDetails
     conn.commit()
     conn.close()
@@ -180,3 +200,5 @@ def rando():
     print(f"heres the sum, {res}")
     conn.commit()
     conn.close()
+
+# print(ticketMaker('A','B','C','D',45))

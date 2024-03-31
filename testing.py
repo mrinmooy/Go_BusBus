@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import ttk
+from tkinter.messagebox import *
 from databaseFunctions import *
 from tkcalendar import Calendar
 import datetime 
@@ -106,8 +107,9 @@ def book():
     container = Frame(root1, bg='pink')
     container.pack(anchor='n', fill='x')
 
-    starting_points = ['Bhopal', 'Dewas', 'Guna', 'Gwalior', 'Hoshingabad', 'Indore', 'Itarsi', 'Jabalpur', 'Sehore', 'Ujjain']
-    destinations = ['Bhopal', 'Dewas', 'Guna', 'Gwalior', 'Hoshingabad', 'Indore', 'Itarsi', 'Jabalpur', 'Sehore', 'Ujjain']
+
+    starting_points = ['Bhopal', 'Dewas', 'Guna', 'Gwalior', 'Hoshangabad', 'Indore', 'Itarsi', 'Jabalpur', 'Sehore', 'Ujjain']
+    destinations = ['Bhopal', 'Dewas', 'Guna', 'Gwalior', 'Hoshangabad', 'Indore', 'Itarsi', 'Jabalpur', 'Sehore', 'Ujjain']
 
     # Comboboxes part
     Frame2 = Frame(container, bg='pink')
@@ -122,21 +124,26 @@ def book():
     start_label.pack( anchor='n')
     start_combobox = ttk.Combobox(Frame2, values=starting_points, state="readonly")
     start_combobox.pack(anchor='n')
-    start_combobox.set('Select Source City')  # Set default value
+    start_combobox.set('Bhopal')  # Set default value
 
     # Create and place the destination combobox
     dest_label = Label(Frame3, text="Destination:")
     dest_label.pack(anchor='n')
     dest_combobox = ttk.Combobox(Frame3, values=destinations, state="readonly")
     dest_combobox.pack(anchor='n')
-    dest_combobox.set('Select Destination City')  # Set default value
+    dest_combobox.set('Jabalpur')  # Set default value
 
     # calendar part
+
+    From="" 
+    To=""
+    dateOfJourney=""
     
     def getDate():
-        dateChosen = cal.get_date()
-        print("Selected date is : ", dateChosen)
-        date_label.config(text=dateChosen)
+        global dateOfJourney
+        dateOfJourney =  cal.get_date()
+        # print("Selected date is : ", dateChosen)
+        date_label.config(text=dateOfJourney)
     Label(Frame4, text="Date of Journey").pack(anchor='n', pady=(200,0))
     date_label = Label(Frame4, text="", width=12)
     date_label.pack(anchor='w', padx = 100) 
@@ -147,23 +154,170 @@ def book():
     Frame5 = Frame(root1, bg='pink')
     Frame5.pack(anchor='n', fill='both', expand=True)
 
+    
     def goToBusPage():
+        global From, To, dateOfJourney
+        From = start_combobox.get()
+        To = dest_combobox.get()
+        # print(From)
+        # print(To)
+        # print(dateOfJourney)
         root1.pack_forget()
         root2.pack(fill='both', expand=True)
-
+        fun1()
+  
 
     Button(Frame5, text='Show Buses', command=goToBusPage).pack(anchor='n', pady=50, padx=(0,80))
 
     root2 = Frame(root, bg='pink')
+    root3 = Frame(root, bg = 'pink')
 
-    def back_button2():
-        root2.pack_forget()
-        root1.pack(fill='both', expand=True)
+    def fun1():
+        global From, To, dateOfJourney
+        
+        def back_button2():
+            root2.pack_forget()
+            root1.pack(fill='both', expand=True)
+            for widget in root2.winfo_children():
+                widget.destroy()
+        
+        Frame1 = Frame(root2,bg='pink')
+        Frame1.pack(fill='both', expand=True)
 
-   
-    Frame1 = Frame(root2, bg='pink')
-    Frame1.pack(anchor='n', fill='x')
-    Button(Frame1, text='Back', command=back_button2).pack(anchor='w', pady=10, padx=10)
+        Button(Frame1, text='Back',command=back_button2).place(x=10,y=10)
+
+        # From = "Bhopal"
+        # To = "Jabalpur"
+        # dateOfJourney = "30-03-2024"
+        dateOfJourney = dateOfJourney.replace('/','-')
+
+        Label(Frame1,text=From).place(x=500,y=100)
+        Label(Frame1,text=To).place(x=750,y=100) 
+        Label(Frame1,text=dateOfJourney).place(x=1000,y=100) 
+
+
+        main_frame = Frame(Frame1, bg='lightgray')
+        main_frame.place(x=400, y=200, width=800, height=500)
+
+        canvas = Canvas(main_frame, width=782, height=500, bg='lightgray')
+        scrollbar = Scrollbar(main_frame, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.place(x=0, y=0)
+        scrollbar.place(x=782, y=0, height=500)
+
+        labels_frame = Frame(canvas, bg="lightgray")
+
+        busDetails = findBusDetails(dateOfJourney, From, To)
+
+        # print(busDetails)
+
+        FrameX = Frame(labels_frame)
+        FrameX.pack(side=TOP)
+
+        Label(FrameX, text="Bus Operator").pack(side=LEFT)
+        Label(FrameX, text="Departure From").pack(side=LEFT)
+        Label(FrameX, text="Final Stop At").pack(side=LEFT)
+        Label(FrameX, text="Seats Available").pack(side=LEFT)
+
+        def bookIt(busid, startPoint, endPoint,seats):
+            global From, To, dateOfJourney
+            root2.pack_forget()
+            root3.pack(fill='both', expand=True)
+            fun2(From,To,dateOfJourney,startPoint,endPoint,seats,busid)
+
+
+        for i in busDetails: 
+            # Label(labels_frame, text=f"{i}", bg="lightgray").pack()
+            FrameX = Frame(labels_frame)
+            FrameX.pack(side=TOP)
+            Label(FrameX, text=f"{i[1]}").pack(side=LEFT)
+            Label(FrameX, text=f"{i[2]}").pack(side=LEFT)
+            Label(FrameX, text=f"{i[3]}").pack(side=LEFT)
+            Label(FrameX, text=f"{i[4]}").pack(side=LEFT)
+            Button(FrameX,text="Book Now",command=lambda i=i: bookIt(i[0], i[2], i[3], i[4])).pack(side=LEFT)
+
+        canvas.create_window((0, 0), window=labels_frame, anchor="nw")
+        labels_frame.update_idletasks()  
+        canvas.config(scrollregion=canvas.bbox("all"))  
+    
+    def fun2(From, To, dateOfJourney, startPoint, endPoint, seats, busid):
+
+        def submit_form():
+            # print("Submitted Information")
+            Name = name_entry.get()
+            Phone = phone_entry.get()
+            Age = age_combobox.get()
+            Sex = sex_combobox.get()
+            if(name_entry.get()==""):
+                showerror("Error","Name is required")
+            elif(phone_entry.get()==""):
+                showerror('Error','Phone number is required')
+            else:
+                ticket = ticketMaker(busid,dateOfJourney,From,To,seats)
+                insertVal('BookingLog',(dateOfJourney,busid,getCityID(From),getCityID(To)))
+                insertVal('PassengerDetails',( ticket, Name,  Sex, Age, Phone))
+                print(ticket)
+                print(dateOfJourney)
+                showinfo('Seat booked', 'Congratulations! Your seat has been successfully booked.')
+                root.destroy()
+                main_menu()
+
+
+        
+
+        def go_back():
+            root3.pack_forget()
+            root2.pack(fill='both', expand=True)
+            for widget in root3.winfo_children():
+                widget.destroy()
+
+
+        Button(root3,text='Cancel', command=go_back).place(x=10,y=10)
+
+        disclaimer_frame = Frame(root3,height=200,width=550, borderwidth=3, relief='ridge')
+        disclaimer_frame.place(x=500,y=170)
+
+        Label(disclaimer_frame,text="This bus will").place(x=100,y=20)
+        Label(disclaimer_frame,text=f"Start from : {startPoint}").place(x=100,y=40)
+        Label(disclaimer_frame,text=f"Stop at : {endPoint}").place(x=300,y=40)
+        Label(disclaimer_frame,text="You will").place(x=100,y=90)
+        Label(disclaimer_frame,text=f"Board at: {From}").place(x=100,y=110)
+        Label(disclaimer_frame,text=f"Get off at: {To}").place(x=300,y=110)
+        Label(disclaimer_frame,text='Fair is Rs. 200').place(x=100,y=160)
+
+
+        main_frame = Frame(root3, padx=10, pady=10, height=210, width=550, borderwidth=3, relief='ridge')
+        main_frame.place(x=500,y=400)
+
+        Label(main_frame, text="Full Name:").place(x=100,y=10)
+        name_entry = Entry(main_frame, width=30)
+        name_entry.place(x=200,y=10)
+
+        Label(main_frame, text="Phone Number:").place(x=100,y=60)
+        phone_entry = Entry(main_frame, width=30)
+        phone_entry.place(x=200,y=60)
+
+        age_values = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42.43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100]
+
+        Label(main_frame, text="Age:").place(x=100,y=110)
+        age_combobox = ttk.Combobox(main_frame, values=age_values, width=3, state="readonly")
+        age_combobox.place(x=200,y=110)
+        age_combobox.current(0) 
+        Label(main_frame, text="Sex:").place(x=100,y=160)
+        sex_combobox = ttk.Combobox(main_frame, values=["Male", "Female", "Other"], width=8, state="readonly")
+        sex_combobox.place(x=200,y=160)
+        sex_combobox.current(0)  
+
+        submit_button = Button(root3, text="Submit & Book", command=submit_form)
+        submit_button.place(x=730,y=630)
+
+       
+
+       
+
+
+    
+
 
 
     root.mainloop()
@@ -212,8 +366,8 @@ def update():
 
 
 # calling welcoming page funtion  
-# welcome_page()
-book()
+welcome_page()
+# book()
 
 
 # print(findBusDetails('29-03-2024','Dewas','Gwalior'))
